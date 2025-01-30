@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1058120612839",
+    "project_id": "pdglobal-a11c0",
+    "storage_bucket": "pdglobal-a11c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058120612839:android:42b1ba398e6a4ed39e5b42",
+        "android_client_info": {
+          "package_name": "com.KCS"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9D80QvmE6hUh-JZVxO0nUusf-2VB_bU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

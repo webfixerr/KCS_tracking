@@ -1,0 +1,9 @@
+Points that are on hold while developing this app.
+
+Native wind is v2 so it is using specific tailwind version, waiting for nativewind v4.
+Configuring and testing of react-native-mmkv (storage) for IOS is remaining.
+Configuring and testing of React native camera for IOS is remaining.
+Configuring and testing of React native Background location for IOS is remaining.
+local.properties under android folder is added
+config for react-native-vector-icons for ios and andriod is not done.
+react-native-image-picket for android only
