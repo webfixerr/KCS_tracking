@@ -23,9 +23,9 @@ const usePushNotification = () => {
       const loc1 = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
       );
-      const loc2 = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
-      );
+      // const loc2 = await PermissionsAndroid.request(
+      //   PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+      // );
       const cam = await PermissionsAndroid.request(
         PermissionsAndroid.PERMISSIONS.CAMERA
       )

@@ -1,9 +1,0 @@
-export const WEATHER_TYPE = 'WEATHER';
-export const DAMAGE_TYPE = 'DAMAGE';
-export const ROOT_TYPE = 'ROOT';
-export const STATUS_TYPE = 'STATUS';
-export const SITE_NAME_TYPE = 'SITE_NAME_TYPE';
-export const ACTIVITY_OPTIONS = 'ACTIVITY_TYPES';
-export const INSTALLATION = 'Charger Installation';
-export const AUDIT = 'Audit';
-export const VISIT = 'PDG Maintenance';

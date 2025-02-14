@@ -1,5 +1,7 @@
 import React, {useContext, useState} from 'react';
 import {Text, TouchableOpacity, View, Modal} from 'react-native';
+import {Calendar, CalendarList, Agenda} from 'react-native-calendars';
+
 import {useAttendanceStore} from '../store/attendance';
 
 import {AuthContext} from '../context/AuthContext';
@@ -26,9 +28,9 @@ const Welcome = () => {
       <Modal className="rounded-lg relative" visible={isModalVisible}>
         <Camera setIsModalVisible={setIsModalVisible} />
       </Modal>
-      <View className="flex flex-row space-x-4 justify-center mt-6">
+      <View className="flex flex-row space-x-6 justify-center mt-6">
         <TouchableOpacity
-          className={`py-4 rounded-lg px-3 ${
+          className={`py-3 rounded-lg px-6 ${
             attend ? 'bg-slate-400' : 'bg-blue-400'
           }`}
           disabled={attend}
@@ -37,15 +39,19 @@ const Welcome = () => {
         </TouchableOpacity>
         <TouchableOpacity
           disabled={!attend}
-          className={`py-4 rounded-lg px-3 ${
+          className={`py-3 rounded-lg px-6 ${
             attend ? 'bg-blue-400' : 'bg-slate-400'
           }`}
           onPress={handleMarkOut}>
           <Text className="text-xl text-white text-center">Mark Out</Text>
         </TouchableOpacity>
       </View>
-      <View>
-        <Text className="text-center text-black">Calender</Text>
+      <View className="px-4">
+        <Calendar
+          onDayPress={day => {
+            console.log('selected day', day);
+          }}
+        />
       </View>
     </View>
   );

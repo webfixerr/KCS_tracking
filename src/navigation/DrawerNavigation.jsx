@@ -11,11 +11,10 @@ import {AuthContext} from '../context/AuthContext';
 
 //Screen imports
 import Welcome from '../screens/Welcome';
-import Tickets from '../screens/Issues/Tickets';
+import Salary from '../screens/Salary';
+import Equipment from '../screens/Equipment';
 
-import Activities from '../screens/Activities';
-
-import {TICKET_PATH, ACTIVITY_PATH, WELCOME_PATH} from '../constants/path';
+import {WELCOME_PATH, SALARY_PATH, EQUIPMENT_PATH} from '../constants/path';
 import {Text} from 'react-native';
 
 const Drawer = createDrawerNavigator();
@@ -48,16 +47,16 @@ const DrawerNavigation = () => {
         }}
       />
       <Drawer.Screen
-        name={TICKET_PATH}
-        component={Tickets}
+        name={SALARY_PATH}
+        component={Salary}
         options={{
           drawerActiveTintColor: '#333',
           drawerActiveBackgroundColor: 'lightblue',
         }}
       />
       <Drawer.Screen
-        name={ACTIVITY_PATH}
-        component={Activities}
+        name={EQUIPMENT_PATH}
+        component={Equipment}
         options={{
           drawerActiveTintColor: '#333',
           drawerActiveBackgroundColor: 'lightblue',
