@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import 'react-native-gesture-handler';
 import {
   createDrawerNavigator,
@@ -7,10 +7,8 @@ import {
   DrawerItemList,
 } from '@react-navigation/drawer';
 
-import {AuthContext} from '../context/AuthContext';
-
 //Screen imports
-import Welcome from '../screens/Welcome';
+import AttendanceScreen from '../screens/AttendanceScreen';
 import Salary from '../screens/Salary';
 import Equipment from '../screens/Equipment';
 
@@ -20,14 +18,14 @@ import {Text} from 'react-native';
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
-  const {logout} = useContext(AuthContext);
+
   return (
     <DrawerContentScrollView {...props}>
       <DrawerItemList {...props} />
       <DrawerItem
         label={() => <Text style={{color: 'white'}}>Logout</Text>}
         style={{backgroundColor: 'red'}}
-        onPress={logout}
+        // onPress={logout}
       />
     </DrawerContentScrollView>
   );
@@ -40,7 +38,7 @@ const DrawerNavigation = () => {
       drawerContent={props => <CustomDrawerContent {...props} />}>
       <Drawer.Screen
         name={WELCOME_PATH}
-        component={Welcome}
+        component={AttendanceScreen}
         options={{
           drawerActiveTintColor: '#333',
           drawerActiveBackgroundColor: 'lightblue',

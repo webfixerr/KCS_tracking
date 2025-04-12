@@ -1,7 +1,7 @@
 import React from 'react';
 import messaging from '@react-native-firebase/messaging';
 import {PermissionsAndroid, Platform, Alert} from 'react-native';
-import {storage} from '../utils/Storage';
+import storage from '../utils/storage';
 
 const usePushNotification = () => {
   const requestUserPermission = async () => {

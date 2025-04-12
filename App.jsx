@@ -1,59 +1,90 @@
-import React, {useState, useEffect} from 'react';
-import {NavigationContainer} from '@react-navigation/native';
-import messaging from '@react-native-firebase/messaging';
-
-import {BASE_URL} from './src/utils/api';
-
-//Context state imports
-import {AuthProvider} from './src/context/AuthContext';
-import {ActivityProvider} from './src/context/ActivityContext';
-
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { PermissionsAndroid, Platform } from 'react-native';
+import useAuthStore from './src/store/auth.store';
+import useAppStore from './src/store/app.store';
 import StackNavigation from './src/navigation/StackNavigation';
-import usePushNotification from './src/hooks/usePushNotification';
-
-import {Alert} from 'react-native';
-
-import {setItem, setItemAsync} from './src/utils/Storage';
-
-import Geolocation from '@react-native-community/geolocation';
-import {check, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import Loader from './src/components/Loader';
+import ErrorModal from './src/components/ErrorModal';
+import { configureInterceptors } from './src/services/api';
 
 function App() {
-  const {
-    requestUserPermission,
-    getFCMToken,
-    listenToBackgroundNotifications,
-    listenToForegroundNotifications,
-    onNotificationOpenedAppFromBackground,
-    onNotificationOpenedAppFromQuit,
-  } = usePushNotification();
+  // Zustand stores
+  const { initialize: initializeAuth } = useAuthStore();
+  const { 
+    permissionsGranted, 
+    setPermissions, 
+    setLoading, 
+    setError, 
+    clearError,
+    loading,
+    error
+  } = useAppStore();
 
-
+  // Initial app setup
   useEffect(() => {
-    const listenToNotifications = () => {
+    const initializeApp = async () => {
       try {
-        getFCMToken();
-        requestUserPermission();
-        onNotificationOpenedAppFromQuit();
-        listenToBackgroundNotifications();
-        listenToForegroundNotifications();
-        onNotificationOpenedAppFromBackground();
-      } catch (error) {
-        console.log('ERROR - ', error);
+        setLoading(true);
+        console.log('Initialization started');
+        
+        // 1. Request required permissions
+        console.log('Requesting permissions...');
+        const granted = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        ]);
+
+        console.log('Permissions response:', granted);
+        
+        const cameraGranted = 
+          granted[PermissionsAndroid.PERMISSIONS.CAMERA] === 
+          PermissionsAndroid.RESULTS.GRANTED;
+          
+        const locationGranted = 
+          granted[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] === 
+          PermissionsAndroid.RESULTS.GRANTED;
+
+        setPermissions(cameraGranted && locationGranted);
+
+        // 2. Initialize auth state
+        console.log('Initializing auth...');
+        await initializeAuth();
+
+        // 3. Configure API interceptors
+        console.log('Configuring API...');
+        configureInterceptors({
+          auth: useAuthStore.getState(),
+          app: useAppStore.getState()
+        });
+
+        console.log('Initialization completed successfully');
+
+      } catch (err) {
+        console.error('Initialization error:', err);
+        setError(`Initialization failed: ${err.message}`);
+      } finally {
+        setLoading(false);
       }
     };
 
-    listenToNotifications();
+    initializeApp();
   }, []);
 
   return (
-    <AuthProvider>
-      <ActivityProvider>
-        <NavigationContainer>
-          <StackNavigation />
-        </NavigationContainer>
-      </ActivityProvider>
-    </AuthProvider>
+    <>
+      <NavigationContainer>
+        <StackNavigation />
+      </NavigationContainer>
+
+      {/* Global Components */}
+      <Loader visible={loading} />
+      <ErrorModal 
+        visible={!!error}
+        message={error}
+        onDismiss={clearError}
+      />
+    </>
   );
 }
 

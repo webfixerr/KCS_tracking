@@ -1,37 +1,34 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {AuthContext} from '../context/AuthContext';
-
-//Screen import
+import useAuthStore from '../store/auth.store';
 import Login from '../screens/Login';
 import Home from '../screens/Home';
-import Loader from '../components/Loader';
 
-import {HOME_PATH, LOGIN_PATH} from '../constants/path';
+const Stack = createNativeStackNavigator();
 
-const StackNavigation = () => {
-  const Stack = createNativeStackNavigator();
-  const {userToken, isLoading} = useContext(AuthContext);
+export default function StackNavigation() {
+  const {isAuthenticated, initialize} = useAuthStore();
 
-  if (isLoading) {
-    <Loader />;
-  }
-
-  console.log('USER TOKEN - ', userToken);
+  useEffect(() => {
+    initialize();
+  }, []);
 
   return (
-    <Stack.Navigator initialRouteName={userToken !== null ? Home : Login}>
-      {userToken !== null ? (
+    <Stack.Navigator>
+
+      {isAuthenticated ? (
         <Stack.Screen
-          name={HOME_PATH}
+          name="Attendance"
           component={Home}
           options={{headerShown: false}}
         />
       ) : (
-        <Stack.Screen name={LOGIN_PATH} component={Login} />
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{headerShown: false}}
+        />
       )}
     </Stack.Navigator>
   );
-};
-
-export default StackNavigation;
+}
