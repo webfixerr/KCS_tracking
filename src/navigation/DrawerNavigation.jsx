@@ -14,18 +14,19 @@ import Equipment from '../screens/Equipment';
 
 import {WELCOME_PATH, SALARY_PATH, EQUIPMENT_PATH} from '../constants/path';
 import {Text} from 'react-native';
+import useAuthStore from '../store/auth.store';
 
 const Drawer = createDrawerNavigator();
 
 function CustomDrawerContent(props) {
-
+  const {logout} = useAuthStore();
   return (
     <DrawerContentScrollView {...props}>
       <DrawerItemList {...props} />
       <DrawerItem
         label={() => <Text style={{color: 'white'}}>Logout</Text>}
         style={{backgroundColor: 'red'}}
-        // onPress={logout}
+        onPress={logout}
       />
     </DrawerContentScrollView>
   );

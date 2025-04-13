@@ -16,6 +16,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import AttendanceService from '../../services/attendance.service';
+import api from '../../services/api';
+import {BRANCH, SHIFT_TYPE} from '../../constants/api';
 
 // Enable LayoutAnimation on Android
 if (
@@ -32,11 +34,11 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
   const {user} = useAuthStore();
   const {
     branch,
-    work_location,
     shift_type,
     setBranch,
-    setWorkLocation,
     setShiftType,
+    fetchBranchOptions,
+    fetchShiftTypeOptions,
   } = useSelectStore();
 
   const [facesDetected, setFacesDetected] = useState([]);
@@ -67,7 +69,7 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
       base64_image: capturedPhoto.base64,
       filename: `${user.id}.jpg`,
       branch,
-      work_location,
+      // work_location,
       shift_type,
     };
 
@@ -116,7 +118,7 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
   const isFormComplete =
     branch &&
     shift_type &&
-    work_location &&
+    // work_location &&
     facesDetected.length === 1 &&
     photoTaken;
 
@@ -130,18 +132,20 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
 
   // Simulate fetching data for later
   useEffect(() => {
-    const fetchData = async () => {
-      const branches = ['hcl', 'xyz', 'abc'];
-      const locations = ['lucknow', 'delhi', 'bangalore'];
-      const shiftTypes = ['night', 'day'];
-
-      setBranch(branches[0]);
-      setWorkLocation(locations[0]);
-      setShiftType(shiftTypes[0]);
-    };
-
-    fetchData();
+    fetchBranchOptions();
+    fetchShiftTypeOptions();
   }, []);
+
+  // <Text style={styles.label}>Work Location</Text>
+  // <Picker
+  //   selectedValue={work_location}
+  //   onValueChange={setWorkLocation}
+  //   style={styles.picker}>
+  //   <Picker.Item label="Select Location" value="" />
+  //   <Picker.Item label="Lucknow" value="lucknow" />
+  //   <Picker.Item label="Noida" value="noida" />
+  //   <Picker.Item label="Bangalore" value="bangalore" />
+  // </Picker>
 
   return (
     <View style={styles.container}>
@@ -238,20 +242,13 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
               onValueChange={setBranch}
               style={styles.picker}>
               <Picker.Item label="Select Branch" value="" />
-              <Picker.Item label="HCL" value="hcl" />
-              <Picker.Item label="TCS" value="tcs" />
-              <Picker.Item label="XYZ" value="xyz" />
-            </Picker>
-
-            <Text style={styles.label}>Work Location</Text>
-            <Picker
-              selectedValue={work_location}
-              onValueChange={setWorkLocation}
-              style={styles.picker}>
-              <Picker.Item label="Select Location" value="" />
-              <Picker.Item label="Lucknow" value="lucknow" />
-              <Picker.Item label="Noida" value="noida" />
-              <Picker.Item label="Bangalore" value="bangalore" />
+              {useSelectStore.getState().branchOptions.map((option, idx) => (
+                <Picker.Item
+                  key={idx}
+                  label={option.label}
+                  value={option.value}
+                />
+              ))}
             </Picker>
 
             <Text style={styles.label}>Shift Type</Text>
@@ -260,8 +257,13 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
               onValueChange={setShiftType}
               style={styles.picker}>
               <Picker.Item label="Select Shift" value="" />
-              <Picker.Item label="Day" value="day" />
-              <Picker.Item label="Night" value="night" />
+              {useSelectStore.getState().shiftTypeOptions.map((option, idx) => (
+                <Picker.Item
+                  key={idx}
+                  label={option.label}
+                  value={option.value}
+                />
+              ))}
             </Picker>
           </ScrollView>
         )}
