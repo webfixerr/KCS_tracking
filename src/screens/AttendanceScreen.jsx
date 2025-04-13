@@ -20,10 +20,6 @@ const AttendanceScreen = () => {
   const [records, setRecords] = useState([]);
   const [currentStatus, setCurrentStatus] = useState('IN');
 
-  // useEffect(() => {
-  //   loadAttendanceData();
-  // }, []);
-
   const requestPermissions = async () => {
     const cameraPermission =
       Platform.OS === 'android'
@@ -37,9 +33,11 @@ const AttendanceScreen = () => {
 
   const loadAttendanceData = async () => {
     try {
-      const data = await AttendanceService.getRecords();
-      setRecords(data);
-      updateCurrentStatus(data);
+      const response = await AttendanceService.getAttendanceRecordsByEmployee(
+        user?.id,
+      );
+      setRecords(response); // response is now an array of { attendance_date, status }
+      updateCurrentStatus(response);
     } catch (error) {
       setError('Failed to load attendance records');
     }
@@ -84,6 +82,10 @@ const AttendanceScreen = () => {
       />
     );
   }
+
+  useEffect(() => {
+    loadAttendanceData();
+  }, []);
 
   return (
     <View style={styles.container}>

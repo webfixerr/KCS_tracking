@@ -1,4 +1,4 @@
-import {ATTENDANCE} from '../constants/api';
+import {ATTENDANCE, GET_ATTENDANCE} from '../constants/api';
 import api from './api';
 
 export const AttendanceService = {
@@ -11,16 +11,19 @@ export const AttendanceService = {
     }
   },
 
-  async getAttendanceRecords() {
-    return api.get('/attendance');
-  },
-
-  async getRecords() {
+  async getAttendanceRecordsByEmployee(employeeId) {
     try {
-      const {data} = await api.get('/attendance');
-      return data;
+      const filters = encodeURIComponent(
+        JSON.stringify([['employee', '=', employeeId]]),
+      );
+      const fields = encodeURIComponent(JSON.stringify(['*']));
+      const url = `${GET_ATTENDANCE}?filters=${filters}&fields=${fields}`;
+
+      const {data} = await api.get(url);
+      return data?.data || [];
     } catch (error) {
-      throw error;
+      console.warn('GET ATTENDANCE ERROR: ', error);
+      return [];
     }
   },
 };
