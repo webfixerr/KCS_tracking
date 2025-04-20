@@ -73,40 +73,40 @@ const AttendanceScreen = () => {
     }
   };
 
-  if (showCamera) {
-    return (
-      <AttendCamera
-        currentStatus={currentStatus}
-        setCurrentStatus={setCurrentStatus}
-        setShowCamera={setShowCamera}
-      />
-    );
-  }
-
   useEffect(() => {
     loadAttendanceData();
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{user?.username}Attendance</Text>
+      {showCamera ? (
+        <AttendCamera
+          currentStatus={currentStatus}
+          setCurrentStatus={setCurrentStatus}
+          setShowCamera={setShowCamera}
+        />
+      ) : (
+        <>
+          <Text style={styles.title}>{user?.username}Attendance</Text>
 
-      <AttendanceCalendar
-        records={records}
-        selectedDate={moment().format('YYYY-MM-DD')}
-      />
+          <AttendanceCalendar
+            records={records}
+            selectedDate={moment().format('YYYY-MM-DD')}
+          />
 
-      <AttendanceButton
-        status={currentStatus}
-        onPress={handleAttendancePress}
-      />
+          <AttendanceButton
+            status={currentStatus}
+            onPress={handleAttendancePress}
+          />
 
-      <Button
-        title="Logout"
-        onPress={logout}
-        color="#e74c3c"
-        icon={<LogOut size={18} color="#e74c3c" />}
-      />
+          <Button
+            title="Logout"
+            onPress={logout}
+            color="#e74c3c"
+            icon={<LogOut size={18} color="#e74c3c" />}
+          />
+        </>
+      )}
     </View>
   );
 };

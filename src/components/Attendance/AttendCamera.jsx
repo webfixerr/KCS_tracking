@@ -33,6 +33,8 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
   const faceTimeout = useRef(null);
   const {user} = useAuthStore();
   const {
+    branchOptions,
+    shiftTypeOptions,
     branch,
     shift_type,
     setBranch,
@@ -242,7 +244,7 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
               onValueChange={setBranch}
               style={styles.picker}>
               <Picker.Item label="Select Branch" value="" />
-              {useSelectStore.getState().branchOptions.map((option, idx) => (
+              {branchOptions.map((option, idx) => (
                 <Picker.Item
                   key={idx}
                   label={option.label}
@@ -257,7 +259,7 @@ const AttendCamera = ({currentStatus, setShowCamera, setCurrentStatus}) => {
               onValueChange={setShiftType}
               style={styles.picker}>
               <Picker.Item label="Select Shift" value="" />
-              {useSelectStore.getState().shiftTypeOptions.map((option, idx) => (
+              {shiftTypeOptions.map((option, idx) => (
                 <Picker.Item
                   key={idx}
                   label={option.label}
