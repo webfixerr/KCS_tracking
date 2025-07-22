@@ -24,6 +24,10 @@ if ! command -v expo &> /dev/null; then
     npm install -g @expo/cli
 fi
 
+# Run expo doctor to check for issues
+echo "🩺 Running Expo Doctor..."
+npx expo-doctor
+
 echo "✅ Setup complete!"
 echo ""
 echo "🎯 Available commands:"
@@ -31,6 +35,10 @@ echo "  npm start          - Start development server"
 echo "  npm run android    - Run on Android device/emulator"
 echo "  npm run ios        - Run on iOS device/simulator"
 echo "  npm run web        - Run in web browser"
+echo ""
+echo "🔧 If you encounter issues, try:"
+echo "  npx expo install --fix"
+echo "  npx expo-doctor --verbose"
 echo ""
 
 # Start the development server

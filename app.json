@@ -51,6 +51,11 @@
       ],
       "expo-font"
     ],
-    "sdkVersion": "50.0.0"
+    "sdkVersion": "50.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "f32e77b7-0d5b-47d3-a503-071b14314a95"
+      }
+    }
   }
 }
