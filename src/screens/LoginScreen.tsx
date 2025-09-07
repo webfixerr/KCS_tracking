@@ -64,10 +64,11 @@ const LoginScreen = () => {
       })
 
       const userData = {
-        name: response.message.user_data.name,
+        name: response.message.user_data.full_name,
         email: response.message.user_data.email,
         full_name: response.full_name,
         user_image: response.message.user_data.user_image,
+        userId: response.message.empDetails.name,
       }
 
       await setAuth(userData, response.message.sid)

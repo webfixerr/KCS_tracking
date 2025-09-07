@@ -6,6 +6,7 @@ interface User {
   email: string
   full_name: string
   user_image?: string
+  userId: string
 }
 
 interface AuthState {
