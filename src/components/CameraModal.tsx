@@ -23,35 +23,11 @@ const CameraModal: React.FC<CameraModalProps> = ({
   onClose,
   onCapture,
 }) => {
-  const [type, setType] = useState(CameraType.front);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
   const [capturedPhoto, setCapturedPhoto] = useState<{
     uri: string;
     base64: string;
   } | null>(null);
   const cameraRef = useRef<Camera>(null);
-
-  if (!permission) {
-    return <View />;
-  }
-
-  if (!permission.granted) {
-    return (
-      <Modal visible={visible} transparent>
-        <View style={styles.permissionContainer}>
-          <Text style={styles.permissionText}>
-            We need your permission to show the camera
-          </Text>
-          <TouchableOpacity
-            style={styles.permissionButton}
-            onPress={requestPermission}
-          >
-            <Text style={styles.buttonText}>Grant Permission</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    );
-  }
 
   const takePicture = async () => {
     if (cameraRef.current) {
@@ -109,28 +85,17 @@ const CameraModal: React.FC<CameraModalProps> = ({
           </View>
         ) : (
           <>
-            <Camera style={styles.camera} type={type} ref={cameraRef} ratio="16:9">
+            <Camera
+              style={styles.camera}
+              type={CameraType.front}
+              ref={cameraRef}
+              ratio="16:9"
+            >
               <View style={styles.buttonContainer}>
+                <Text style={styles.buttonText}>Click to capture</Text>
                 <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                   <MaterialIcons name="close" size={28} color="white" />
                   <Text style={styles.buttonText}>Close</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.flipButton}
-                  onPress={() => {
-                    setType(
-                      type === CameraType.back
-                        ? CameraType.front
-                        : CameraType.back
-                    );
-                  }}
-                >
-                  <MaterialIcons
-                    name="flip-camera-ios"
-                    size={28}
-                    color="white"
-                  />
-                  <Text style={styles.buttonText}>Flip</Text>
                 </TouchableOpacity>
               </View>
             </Camera>
@@ -158,7 +123,7 @@ const styles = StyleSheet.create({
   },
   camera: {
     height: "90%",
-    width: "100%"
+    width: "100%",
   },
   buttonContainer: {
     flexDirection: "row",

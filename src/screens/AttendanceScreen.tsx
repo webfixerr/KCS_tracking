@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,20 +7,26 @@ import {
   ScrollView,
   RefreshControl,
   Linking,
-  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
 import { useAttendanceStore } from "../store/attendanceStore";
 import { useAuthStore } from "../store/authStore";
 import { apiService } from "../services/apiService";
 import CameraModal from "../components/CameraModal";
 import CustomAlert from "../components/CustomAlert";
+import { useLoadingStore } from "../store/loadingStore";
 
 const AttendanceScreen = () => {
-  const { slots, updateSlotStatus, setLoading, isLoading, fetchSlots } =
-    useAttendanceStore();
+  const {
+    slots,
+    updateSlotStatus,
+    setLoading: setAttendanceLoading,
+    fetchSlots,
+  } = useAttendanceStore();
   const { user, sid } = useAuthStore();
+  const { setLoading: setGlobalLoading } = useLoadingStore();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<string | null>(
     null
   );
@@ -41,12 +47,17 @@ const AttendanceScreen = () => {
     latitude: string;
     longitude: string;
   } | null>(null);
+  const [permissionsReady, setPermissionsReady] = useState<boolean>(false);
+  const [locationServicesEnabled, setLocationServicesEnabled] = useState<
+    boolean | null
+  >(null);
 
-  useEffect(() => {
-    const requestLocation = async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("Location permission denied");
+  const checkPermissionsAndLocation = useCallback(async () => {
+    try {
+      // Check permissions
+      let { status: locationStatus } =
+        await Location.getForegroundPermissionsAsync();
+      if (locationStatus !== "granted") {
         setAlert({
           visible: true,
           type: "error",
@@ -55,116 +66,115 @@ const AttendanceScreen = () => {
             "Please grant location permissions in your device settings to mark attendance.",
         });
         Linking.openSettings();
+        setPermissionsReady(false);
         return;
       }
-      console.log("Location permission granted");
-    };
-    requestLocation();
 
-    if (sid && user?.userId) {
-      fetchSlots(sid, user.userId);
-    }
-  }, [sid, user]);
-
-  const getLocationWithRetry = async (
-    retries = 3,
-    timeout = 20000
-  ): Promise<Location.LocationObject> => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        console.log(`Attempting to get location (Attempt ${attempt})...`);
-        // Enable network provider for Android
-        if (Platform.OS === "android") {
-          try {
-            await Location.enableNetworkProviderAsync();
-            console.log("Network provider enabled");
-          } catch (error) {
-            console.log("Failed to enable network provider:", error);
-          }
-        }
-        const locationData = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Low,
-          timeInterval: 5000,
-          distanceInterval: 10,
+      let { status: cameraStatus } =
+        await ImagePicker.getCameraPermissionsAsync();
+      if (cameraStatus !== "granted") {
+        setAlert({
+          visible: true,
+          type: "error",
+          title: "Camera Permission Required",
+          message:
+            "Please grant camera permissions in your device settings to capture attendance photo.",
         });
-        // console.log("Location acquired:", {
-        //   latitude: locationData.coords.latitude,
-        //   longitude: locationData.coords.longitude,
-        //   accuracy: locationData.coords.accuracy,
-        // });
-        return locationData;
-      } catch (error: any) {
-        // console.log(`Location attempt ${attempt} failed: ${error.message}`);
-        if (attempt === retries) {
-          // console.log("Trying last known location as fallback...");
-          try {
-            const lastKnownLocation =
-              await Location.getLastKnownPositionAsync();
-            if (lastKnownLocation) {
-              console.log("Last known location acquired:", {
-                latitude: lastKnownLocation.coords.latitude,
-                longitude: lastKnownLocation.coords.longitude,
-                accuracy: lastKnownLocation.coords.accuracy,
-              });
-              return lastKnownLocation;
-            }
-            console.log("No last known location available");
-            throw error;
-          } catch (fallbackError) {
-            console.log("Fallback failed:", fallbackError);
-            throw error; // Re-throw original error
-          }
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait 1s before retry
+        Linking.openSettings();
+        setPermissionsReady(false);
+        return;
       }
-    }
-    throw new Error("Failed to get location after retries");
-  };
 
-  const handleSlotPress = async (slotIndex: string) => {
-    try {
-      // Check if location services are enabled
+      // Check location services
       const isLocationEnabled = await Location.hasServicesEnabledAsync();
+      setLocationServicesEnabled(isLocationEnabled);
       if (!isLocationEnabled) {
-        console.log("Location services are disabled");
         setAlert({
           visible: true,
           type: "error",
           title: "Location Services Disabled",
           message:
-            "Please enable location services (GPS) in your device settings to mark attendance.",
+            "Please enable location services in your device settings to mark attendance.",
         });
         Linking.openSettings();
+        setPermissionsReady(false);
         return;
       }
-      console.log("Location services are enabled");
 
-      let locationData = await getLocationWithRetry();
-      setLocation({
-        latitude: locationData.coords.latitude.toString(),
-        longitude: locationData.coords.longitude.toString(),
-      });
-      console.log("Setting cameraVisible to true");
-      setSelectedSlotIndex(slotIndex);
-      setCameraVisible(true);
+      // Pre-fetch location
+      try {
+        let locationData = await Location.getLastKnownPositionAsync();
+        if (!locationData) {
+          locationData = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Low,
+          });
+        }
+        setLocation({
+          latitude: locationData.coords.latitude.toString(),
+          longitude: locationData.coords.longitude.toString(),
+        });
+      } catch (error) {
+        console.log("Pre-fetch location failed:", error);
+        setLocation(null);
+      }
+
+      setPermissionsReady(true);
+    } catch (error: any) {
+      console.error("Permission check error:", error);
+      setPermissionsReady(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkPermissionsAndLocation();
+
+    if (sid && user?.userId) {
+      setGlobalLoading(true);
+      fetchSlots(sid, user.userId).finally(() => setGlobalLoading(false));
+    }
+  }, [sid, user, setGlobalLoading, checkPermissionsAndLocation]);
+
+  const handleSlotPress = async (slotIndex: string) => {
+    try {
+      if (!permissionsReady || !locationServicesEnabled) {
+        await checkPermissionsAndLocation();
+        if (!permissionsReady || !locationServicesEnabled) {
+          return; // Alert already shown in checkPermissionsAndLocation
+        }
+      }
+
+      // Use cached location or fetch new one
+      let currentLocation = location;
+      if (!currentLocation) {
+        let locationData = await Location.getLastKnownPositionAsync();
+        if (!locationData) {
+          locationData = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Low,
+          });
+        }
+        currentLocation = {
+          latitude: locationData.coords.latitude.toString(),
+          longitude: locationData.coords.longitude.toString(),
+        };
+        setLocation(currentLocation);
+      }
+
+      // Batch state updates
+      setTimeout(() => {
+        setSelectedSlotIndex(slotIndex);
+        setCameraVisible(true);
+      }, 0);
     } catch (error: any) {
       console.error("Location error:", error);
-      let errorMessage =
-        "Failed to get location. Please ensure GPS is enabled and try again.";
+      let errorMessage = "Failed to get location. Please try again.";
       if (error.message.includes("Location services are disabled")) {
         errorMessage =
-          "Please enable location services (GPS) in your device settings to mark attendance.";
+          "Please enable location services in your device settings to mark attendance.";
         Linking.openSettings();
       } else if (error.message.includes("Location permission denied")) {
         errorMessage =
           "Please grant location permissions in your device settings to mark attendance.";
         Linking.openSettings();
-      } else if (
-        error.message.includes("timeout") ||
-        error.message.includes("Current location is unavailable")
-      ) {
-        errorMessage =
-          "Unable to get location due to weak GPS signal. Please move to an open area with a clear view of the sky or ensure your device has a stable GPS signal, then try again.";
       }
       setAlert({
         visible: true,
@@ -172,16 +182,42 @@ const AttendanceScreen = () => {
         title: "Location Error",
         message: errorMessage,
       });
+      setLocation(null);
+      setSelectedSlotIndex(null);
+      setCameraVisible(false);
     }
   };
 
   const handleCameraCapture = async (base64Image: string) => {
-    if (!selectedSlotIndex || !sid || !location) return;
+    if (!selectedSlotIndex || !sid || !location) {
+      setAlert({
+        visible: true,
+        type: "error",
+        title: "Invalid State",
+        message: "Missing required data. Please try again.",
+      });
+      setCameraVisible(false);
+      setSelectedSlotIndex(null);
+      setLocation(null);
+      return;
+    }
 
     const slot = slots[parseInt(selectedSlotIndex)];
-    if (!slot) return;
+    if (!slot) {
+      setAlert({
+        visible: true,
+        type: "error",
+        title: "Invalid Slot",
+        message: "Selected slot is invalid. Please try again.",
+      });
+      setCameraVisible(false);
+      setSelectedSlotIndex(null);
+      setLocation(null);
+      return;
+    }
 
-    setLoading(true);
+    setAttendanceLoading(true);
+    setGlobalLoading(true);
     try {
       const attendanceData = {
         employee: slot.employee,
@@ -232,17 +268,20 @@ const AttendanceScreen = () => {
         message: errorMessage,
       });
     } finally {
-      setLoading(false);
+      setAttendanceLoading(false);
+      setGlobalLoading(false);
       setSelectedSlotIndex(null);
-      setCameraVisible(false);
       setLocation(null);
+      setCameraVisible(false);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
     if (sid && user?.userId) {
+      setGlobalLoading(true);
       await fetchSlots(sid, user.userId);
+      setGlobalLoading(false);
     }
     setRefreshing(false);
   };

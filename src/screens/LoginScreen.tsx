@@ -96,7 +96,7 @@ const LoginScreen = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.logoContainer}>
           <MaterialIcons name="business" size={80} color="#007AFF" />
-          <Text style={styles.title}>KCS Attendance</Text>
+          <Text style={styles.title}>KCS</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
         </View>
 
