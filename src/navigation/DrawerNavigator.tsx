@@ -38,12 +38,12 @@ const CustomDrawerContent = (props: any) => {
         title: "Success",
         message: "Logged out successfully",
       });
-    } catch (error) {
+    } catch (error : any) {
       setAlert({
         visible: true,
         type: "error",
         title: "Error",
-        message: "Failed to logout",
+        message: error.message,
       });
     }
   };

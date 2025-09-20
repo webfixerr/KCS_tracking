@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   View,
   Text,
@@ -10,58 +10,60 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native"
-import { MaterialIcons } from "@expo/vector-icons"
-import { useAuthStore } from "../store/authStore"
-import { apiService } from "../services/apiService"
-import CustomAlert from "../components/CustomAlert"
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useAuthStore } from "../store/authStore";
+import { apiService } from "../services/apiService";
+import CustomAlert from "../components/CustomAlert";
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
-  const { setAuth, setLoading, isLoading } = useAuthStore()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
+  const { setAuth, setLoading, isLoading } = useAuthStore();
   const [alert, setAlert] = useState<{
-    visible: boolean
-    type: "success" | "error" | "info"
-    title: string
-    message: string
+    visible: boolean;
+    type: "success" | "error" | "info";
+    title: string;
+    message: string;
   }>({
     visible: false,
     type: "info",
     title: "",
     message: "",
-  })
+  });
 
   const validateForm = () => {
-    const newErrors: { email?: string; password?: string } = {}
+    const newErrors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email is invalid"
+      newErrors.email = "Email is invalid";
     }
 
     if (!password.trim()) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+      newErrors.password = "Password must be at least 6 characters";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleLogin = async () => {
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       const response = await apiService.login({
         usr: email,
         pwd: password,
-      })
+      });
 
       const userData = {
         name: response.message.user_data.full_name,
@@ -69,30 +71,27 @@ const LoginScreen = () => {
         full_name: response.full_name,
         user_image: response.message.user_data.user_image,
         userId: response.message.empDetails.name,
-      }
+      };
 
-      await setAuth(userData, response.message.sid)
-
-      setAlert({
-        visible: true,
-        type: "success",
-        title: "Success",
-        message: "Login successful!",
-      })
-    } catch (error) {
+      await setAuth(userData, response.message.sid);
+    } catch (error: any) {
+      console.error("Login failed:", error.message);
       setAlert({
         visible: true,
         type: "error",
         title: "Login Failed",
-        message: "Invalid credentials. Please try again.",
-      })
+        message: error.message,
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.logoContainer}>
           <MaterialIcons name="business" size={80} color="#007AFF" />
@@ -103,8 +102,18 @@ const LoginScreen = () => {
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
-            <View style={[styles.inputWrapper, errors.email ? styles.inputError : undefined]}>
-              <MaterialIcons name="email" size={20} color="#666" style={styles.inputIcon} />
+            <View
+              style={[
+                styles.inputWrapper,
+                errors.email ? styles.inputError : undefined,
+              ]}
+            >
+              <MaterialIcons
+                name="email"
+                size={20}
+                color="#666"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Enter your email"
@@ -115,13 +124,25 @@ const LoginScreen = () => {
                 autoCorrect={false}
               />
             </View>
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            )}
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
-            <View style={[styles.inputWrapper, errors.password ? styles.inputError : undefined]}>
-              <MaterialIcons name="lock" size={20} color="#666" style={styles.inputIcon} />
+            <View
+              style={[
+                styles.inputWrapper,
+                errors.password ? styles.inputError : undefined,
+              ]}
+            >
+              <MaterialIcons
+                name="lock"
+                size={20}
+                color="#666"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Enter your password"
@@ -131,19 +152,33 @@ const LoginScreen = () => {
                 autoCapitalize="none"
                 autoCorrect={false}
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-                <MaterialIcons name={showPassword ? "visibility" : "visibility-off"} size={20} color="#666" />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <MaterialIcons
+                  name={showPassword ? "visibility" : "visibility-off"}
+                  size={20}
+                  color="#666"
+                />
               </TouchableOpacity>
             </View>
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            {errors.password && (
+              <Text style={styles.errorText}>{errors.password}</Text>
+            )}
           </View>
 
           <TouchableOpacity
-            style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+            style={[
+              styles.loginButton,
+              isLoading && styles.loginButtonDisabled,
+            ]}
             onPress={handleLogin}
             disabled={isLoading}
           >
-            <Text style={styles.loginButtonText}>{isLoading ? "Signing In..." : "Sign In"}</Text>
+            <Text style={styles.loginButtonText}>
+              {isLoading ? "Signing In..." : "Sign In"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -156,8 +191,8 @@ const LoginScreen = () => {
         onClose={() => setAlert({ ...alert, visible: false })}
       />
     </KeyboardAvoidingView>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -250,6 +285,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
   },
-})
+});
 
-export default LoginScreen
+export default LoginScreen;

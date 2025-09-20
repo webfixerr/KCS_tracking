@@ -1,13 +1,6 @@
 import { create } from "zustand"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-
-interface User {
-  name: string
-  email: string
-  full_name: string
-  user_image?: string
-  userId: string
-}
+import { User } from "../types/storeTypes"
 
 interface AuthState {
   isAuthenticated: boolean

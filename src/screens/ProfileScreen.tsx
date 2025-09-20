@@ -50,7 +50,7 @@ const ProfileScreen = () => {
       }
 
       try {
-        const response = await apiService.getProfile(sid, user.userId);
+        const response = await apiService.getProfile(sid);
         console.log("Processed profile data:", response);
         if (
           response.message?.status === "success" &&
@@ -75,19 +75,12 @@ const ProfileScreen = () => {
         }
       } catch (error: any) {
         console.error("Profile fetch error:", error.message);
-        let errorMessage =
-          "Failed to load profile data. Please try again later.";
-        if (error.message.includes("401") || error.message.includes("403")) {
-          errorMessage = "Session expired or invalid. Please log in again.";
-        } else if (error.message.includes("Invalid response structure")) {
-          errorMessage =
-            "Received unexpected data from server. Please try again or contact support.";
-        }
+
         setAlert({
           visible: true,
           type: "error",
           title: "Profile Fetch Error",
-          message: errorMessage,
+          message: error.message,
         });
       } finally {
         setLoading(false);

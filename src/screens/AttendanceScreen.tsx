@@ -17,6 +17,7 @@ import { apiService } from "../services/apiService";
 import CameraModal from "../components/CameraModal";
 import CustomAlert from "../components/CustomAlert";
 import { useLoadingStore } from "../store/loadingStore";
+import AttendanceCalendar from "../components/AttendanceCalendar";
 
 const AttendanceScreen = () => {
   const {
@@ -249,23 +250,12 @@ const AttendanceScreen = () => {
       });
     } catch (error: any) {
       console.error("Attendance error:", error);
-      let errorMessage = "Failed to mark attendance. Please try again.";
-      let errorTitle = "Error";
-
-      if (error.message.includes("403")) {
-        errorMessage =
-          "You are too far from the allowed location. Please move closer and try again.";
-      } else if (error.message.includes("409")) {
-        errorMessage = `Attendance already exists for ${slot.employee} on ${
-          new Date().toISOString().split("T")[0]
-        } in shift '${slot.shift_type}'.`;
-      }
 
       setAlert({
         visible: true,
         type: "error",
-        title: errorTitle,
-        message: errorMessage,
+        title: "Attendance Failed",
+        message: error.message,
       });
     } finally {
       setAttendanceLoading(false);
@@ -356,6 +346,8 @@ const AttendanceScreen = () => {
           </View>
         ))}
       </View>
+
+      <AttendanceCalendar />
 
       <CameraModal
         visible={cameraVisible}

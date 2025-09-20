@@ -1,14 +1,6 @@
 import { create } from "zustand";
 import { apiService } from "../services/apiService";
-
-interface AttendanceSlot {
-  employee: string;
-  status: string;
-  branch: string;
-  shift_type: string;
-  isMarkedIn: boolean;
-  enable?: boolean; // For overtime branches
-}
+import { AttendanceSlot } from "../types/storeTypes";
 
 interface AttendanceState {
   slots: AttendanceSlot[];
@@ -34,7 +26,7 @@ export const useAttendanceStore = create<AttendanceState>((set) => ({
   fetchSlots: async (sid: string, employee_id: string) => {
     set({ isLoading: true });
     try {
-      const response = await apiService.getSlots(sid, employee_id);
+      const response = await apiService.getSlots(sid);
       console.log(
         "Fetched slots:",
         response.message.data.primary_branch,

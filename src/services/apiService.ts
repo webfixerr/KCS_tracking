@@ -1,65 +1,13 @@
+import {
+  AttendanceRequest,
+  GetAttendanceResponse,
+  GetSlotsResponse,
+  LoginRequest,
+  LoginResponse,
+  ProfileResponse,
+} from "./../types/apiTypes";
+
 const BASE_URL = "https://erp.knighthood.co/api/method/custom_kcs.src";
-
-export interface LoginRequest {
-  usr: string;
-  pwd: string;
-}
-
-export interface LoginResponse {
-  default_route: string;
-  message: {
-    message: string;
-    sid: string;
-    user_data: any;
-    empDetails: any;
-  };
-  home_page: string;
-  full_name: string;
-}
-
-export interface AttendanceRequest {
-  employee: string;
-  status: string;
-  base64_image: string;
-  branch: string;
-  shift_type: string;
-  latitude: string;
-  longitude: string;
-}
-
-export interface Slot {
-  name: string;
-  shift: string;
-  is_marked: boolean;
-  enable?: boolean; // Only for overtime branches
-}
-
-export interface GetSlotsResponse {
-  message: {
-    status: string;
-    data: {
-      employee: string;
-      primary_branch: Slot;
-      overtime_branches: Slot[];
-    };
-  };
-}
-
-export interface ProfileResponse {
-  message: {
-    status: string;
-    data: {
-      user: {
-        name: string;
-        full_name: string;
-        email: string;
-        mobile_no: string | null;
-        image_url: string | null;
-      };
-      employee: any;
-    };
-  };
-}
 
 class ApiService {
   private async makeRequest(url: string, options: RequestInit = {}) {
@@ -73,10 +21,26 @@ class ApiService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `HTTP error! status: ${response.status}, message: ${errorText}`
-        );
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          const errorText = await response.text();
+          throw new Error(
+            `HTTP error! status: ${response.status}, message: ${errorText}`
+          );
+        }
+
+        if (
+          errorData?.message?.status === "error" &&
+          errorData.message.message
+        ) {
+          throw new Error(errorData.message.message);
+        } else {
+          throw new Error(
+            `HTTP error! status: ${response.status}, message: An unknown error occurred.`
+          );
+        }
       }
 
       return await response.json();
@@ -102,11 +66,9 @@ class ApiService {
     });
   }
 
-  async getSlots(sid: string, employee_id: string): Promise<GetSlotsResponse> {
+  async getSlots(sid: string): Promise<GetSlotsResponse> {
     return this.makeRequest(
-      `${BASE_URL}.api.get_employee_context.get_employee_context?employee_id=${encodeURIComponent(
-        employee_id
-      )}`,
+      `${BASE_URL}.api.get_employee_context.get_employee_context`,
       {
         method: "GET",
         headers: {
@@ -130,15 +92,35 @@ class ApiService {
     });
   }
 
-  async getProfile(sid: string, employee_id: string): Promise<ProfileResponse> {
+  async getMyAttendance(
+    sid: string,
+    userId: string,
+    month: number,
+    year: number
+  ): Promise<GetAttendanceResponse> {
+    const url = `${BASE_URL}.api.attendance.get_my_attendance?user_id=${encodeURIComponent(
+      userId
+    )}&month=${month}&year=${year}`;
+    try {
+      return await this.makeRequest(url, {
+        method: "GET",
+        headers: {
+          Cookie: `sid=${sid}`,
+        },
+      });
+    } catch (error: any) {
+      console.error("Get attendance API failed:", error.message);
+      throw error;
+    }
+  }
+
+  async getProfile(sid: string): Promise<ProfileResponse> {
     const maxRetries = 3;
     let lastError: any;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const url = `${BASE_URL}.api.profile.get_profile?employee_id=%22${encodeURIComponent(
-          employee_id
-        )}%22`;
+        const url = `${BASE_URL}.api.profile.get_profile`;
         console.log(`Attempting profile API call (Attempt ${attempt}): ${url}`);
         const response = await this.makeRequest(url, {
           method: "GET",
