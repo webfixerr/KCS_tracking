@@ -33,6 +33,7 @@ const AttendanceScreen = () => {
   );
   const [cameraVisible, setCameraVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [alert, setAlert] = useState<{
     visible: boolean;
     type: "success" | "error" | "info";
@@ -133,7 +134,7 @@ const AttendanceScreen = () => {
       setGlobalLoading(true);
       fetchSlots(sid, user.userId).finally(() => setGlobalLoading(false));
     }
-  }, [sid, user, setGlobalLoading, checkPermissionsAndLocation]);
+  }, [sid, user, setGlobalLoading, checkPermissionsAndLocation, refreshKey]);
 
   const handleSlotPress = async (slotIndex: string) => {
     try {
@@ -271,6 +272,7 @@ const AttendanceScreen = () => {
     if (sid && user?.userId) {
       setGlobalLoading(true);
       await fetchSlots(sid, user.userId);
+      setRefreshKey((prevKey) => prevKey + 1);
       setGlobalLoading(false);
     }
     setRefreshing(false);
@@ -347,7 +349,7 @@ const AttendanceScreen = () => {
         ))}
       </View>
 
-      <AttendanceCalendar />
+      <AttendanceCalendar refreshKey={refreshKey}/>
 
       <CameraModal
         visible={cameraVisible}

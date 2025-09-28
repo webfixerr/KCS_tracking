@@ -1,4 +1,3 @@
-// src/components/AttendanceCalendar.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
@@ -14,9 +13,7 @@ import { useAuthStore } from "../store/authStore";
 import { apiService } from "../services/apiService";
 import { useLoadingStore } from "../store/loadingStore";
 import { Attendance } from "../types/apiTypes";
-// import { MaterialIcons } from "@expo/vector-icons";
 
-// Define the DateObject type locally since it's not exported
 interface DateObject {
   year: number;
   month: number;
@@ -25,22 +22,19 @@ interface DateObject {
   dateString: string;
 }
 
-// Define a type for the marked dates object to fix the TS error
 interface MarkedDates {
   [date: string]: {
-    marked: boolean;
-    dotColor: string;
-    dots: Array<{
-      color: string;
-    }>;
+    selected: boolean;
+    selectedColor: string;
   };
 }
 
 interface Props {
   onDatePress?: (date: DateObject) => void;
+  refreshKey?: number;
 }
 
-const AttendanceCalendar: React.FC<Props> = ({ onDatePress }) => {
+const AttendanceCalendar: React.FC<Props> = ({ onDatePress, refreshKey }) => {
   const { sid, user } = useAuthStore();
   const { isLoading, setLoading } = useLoadingStore();
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
@@ -67,14 +61,12 @@ const AttendanceCalendar: React.FC<Props> = ({ onDatePress }) => {
             const date = attendance.attendance_date;
             if (!acc[date]) {
               acc[date] = {
-                marked: true,
-                dotColor: attendance.status === "Present" ? "green" : "red",
-                dots: [],
+                selected: true,
+                selectedColor:
+                  attendance.status === "Present" ? "#4CAF50" : "#F44336",
               };
             }
-            acc[date].dots.push({
-              color: attendance.status === "Present" ? "green" : "red",
-            });
+            // For multiple entries on one day, the color will be based on the last entry in the data.
             return acc;
           },
           {}
@@ -92,7 +84,7 @@ const AttendanceCalendar: React.FC<Props> = ({ onDatePress }) => {
 
   useEffect(() => {
     fetchAttendanceData(currentDate.getFullYear(), currentDate.getMonth() + 1);
-  }, [currentDate, fetchAttendanceData]);
+  }, [currentDate, fetchAttendanceData, refreshKey]);
 
   const handleMonthChange = (month: DateObject) => {
     setCurrentDate(new Date(month.year, month.month - 1, 1));
@@ -122,7 +114,6 @@ const AttendanceCalendar: React.FC<Props> = ({ onDatePress }) => {
         </View>
       )}
       <Calendar
-        markingType={"dots"}
         markedDates={markedDates}
         onMonthChange={handleMonthChange}
         onDayPress={handleDayPress}
@@ -130,9 +121,7 @@ const AttendanceCalendar: React.FC<Props> = ({ onDatePress }) => {
         theme={{
           todayTextColor: "#4ECDC4",
           arrowColor: "#4ECDC4",
-          selectedDayBackgroundColor: "#4ECDC4",
-          dotColor: "white",
-          selectedDotColor: "white",
+          selectedDayTextColor: "#FFFFFF",
         }}
       />
       <Modal
@@ -160,7 +149,13 @@ const AttendanceCalendar: React.FC<Props> = ({ onDatePress }) => {
                     <Text style={styles.tooltipBranch}>
                       Branch: {slot.branch}
                     </Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <Text style={styles.tooltipShift}>
                         Shift: {slot.shift}
                       </Text>
