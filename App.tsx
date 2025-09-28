@@ -14,8 +14,8 @@ import { useLoadingStore } from "./src/store/loadingStore";
 const Stack = createStackNavigator();
 
 export default function App() {
-  const isLoading = useLoadingStore((state) => state.isLoading);
-  const { isAuthenticated, checkAuthStatus } = useAuthStore();
+  const { isLoading: isGlobalLoading } = useLoadingStore();
+  const { isAuthenticated, isLoading, checkAuthStatus } = useAuthStore();
 
   useEffect(() => {
     const loadFonts = async () => {
@@ -30,7 +30,11 @@ export default function App() {
     };
 
     loadFonts();
-  }, []);
+  }, [checkAuthStatus]);
+
+  if (isLoading) {
+    return <LoadingOverlay text="Authenticating..." />;
+  }
 
   return (
     <>
@@ -44,16 +48,16 @@ export default function App() {
           )}
         </Stack.Navigator>
       </NavigationContainer>
-      {isLoading && <LoadingOverlay />}
+      {isGlobalLoading && <LoadingOverlay text="Loading..." />}
     </>
   );
 }
 
-const LoadingOverlay = () => {
+const LoadingOverlay = ({ text }: { text: string }) => {
   return (
     <View style={overlayStyles.container}>
       <ActivityIndicator size="large" color="#007AFF" />
-      <Text style={overlayStyles.text}>Loading...</Text>
+      <Text style={overlayStyles.text}>{text}</Text>
     </View>
   );
 };
